@@ -460,51 +460,34 @@ Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
         }
       }
 
-      finalText += "Tổng kết bán hàng ngày " + formatDate() + "
+      finalText += "Tổng kết bán ngày " + formatDate() + "\n\n";
 
-";
-      finalText += "Tổng số đơn hàng đã bán: " + billNum + "
-";
-      finalText += "Tổng doanh số: " + totalRevenue + "
+finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
+finalText += "Tổng doanh thu: " + totalRevenue + "\n\n";
 
-";
-      finalText += "Tổng số lượng hàng đã bán mỗi loại:
-";
+finalText += "Tổng số hàng đã bán mỗi loại:\n";
 
-      let productNames = Object.keys(totalSoldByName);
+let productNames = Object.keys(totalSoldByName);
 
-      if (productNames.length === 0) {
-        finalText += "Chưa bán sản phẩm nào.
-";
-      } else {
-        for (let productName of productNames) {
-          finalText += productName + ": " + totalSoldByName[productName] + "
-";
-        }
-      }
+if (productNames.length === 0) {
+  finalText += "Chưa bán sản phẩm nào.\n";
+} else {
+  for (let productName of productNames) {
+    finalText += productName + ": " + totalSoldByName[productName] + "\n";
+  }
+}
 
-      finalText += "
-Số lượng còn lại của mặt hàng vừa bán:
-";
+finalText += "\nTổng số lượng các mặt hàng còn lại trong kho:\n";
 
-      if (productNames.length === 0) {
-        finalText += "Không có mặt hàng nào được bán.
-";
-      } else {
-        for (let productName of productNames) {
-          let item = findItemByName(productName);
+if (items.length === 0) {
+  finalText += "Không còn mặt hàng nào trong kho.\n";
+} else {
+  for (let item of items) {
+    finalText += item.name + ": " + item.quantity + "\n";
+  }
+}
 
-          if (item) {
-            finalText += productName + " còn lại: " + item.quantity + "
-";
-          }
-        }
-      }
-
-      finalText += "
-Tổng số lượng tất cả mặt hàng trong kho sau khi bán: " + calculateTotalInventory();
-
-      showMessage(finalText);
+showMessage(finalText);
     }
 
     function showList() {
