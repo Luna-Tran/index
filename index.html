@@ -30,7 +30,7 @@
 
     .button-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
     }
 
@@ -75,6 +75,12 @@
       text-align: center;
     }
 
+    @media (max-width: 900px) {
+      .button-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     @media (max-width: 700px) {
       .button-grid {
         grid-template-columns: 1fr;
@@ -104,6 +110,7 @@
       <button id="updateBtn">Cập nhật thông tin hàng hoá</button>
       <button id="sellBtn">Tiến hành bán hàng</button>
       <button id="listBtn">Danh sách mặt hàng</button>
+      <button id="summaryBtn">Tổng kết bán hàng trong ngày</button>
       <button id="clearBtn">Xoá dữ liệu</button>
       <button id="exitBtn">Thoát ứng dụng</button>
       <button id="exportBtn">Tải dữ liệu xuống</button>
@@ -124,6 +131,52 @@
 
   <script>
     let items = [];
+    let dailySummary = null;
+
+    function getTodayKey() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDate() {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      const year = today.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+
+    function createEmptyDailySummary() {
+      return {
+        dateKey: getTodayKey(),
+        displayDate: formatDate(),
+        billNum: 0,
+        totalRevenue: 0,
+        totalSoldByName: {}
+      };
+    }
+
+    function loadDailySummary() {
+      try {
+        const savedSummary = localStorage.getItem("dailySalesSummary");
+        dailySummary = savedSummary ? JSON.parse(savedSummary) : createEmptyDailySummary();
+
+        if (!dailySummary || dailySummary.dateKey !== getTodayKey()) {
+          dailySummary = createEmptyDailySummary();
+          saveDailySummary();
+        }
+      } catch (error) {
+        dailySummary = createEmptyDailySummary();
+        saveDailySummary();
+      }
+    }
+
+    function saveDailySummary() {
+      localStorage.setItem("dailySalesSummary", JSON.stringify(dailySummary));
+    }
 
     function loadData() {
       try {
@@ -148,19 +201,12 @@
     }
 
     loadData();
+    loadDailySummary();
 
     function showMessage(message) {
       const output = document.getElementById("output");
       output.classList.remove("center-output");
       output.textContent = message;
-    }
-
-    function formatDate() {
-      const today = new Date();
-      const month = String(today.getMonth() + 1).padStart(2, "0");
-      const day = String(today.getDate()).padStart(2, "0");
-      const year = today.getFullYear();
-      return `${month}/${day}/${year}`;
     }
 
     function findItemByName(name) {
@@ -178,7 +224,8 @@
 
       if (findItemByName(name)) {
         alert(
-          "Sản phẩm này đã tồn tại trong kho.\n" +
+          "Sản phẩm này đã tồn tại trong kho.
+" +
           "Vui lòng sử dụng nút 'Cập nhật thông tin hàng hoá' để chỉnh sửa số lượng hoặc giá."
         );
         return;
@@ -229,11 +276,18 @@
       }
 
       let choice = prompt(
-        "Đang chỉnh sửa sản phẩm: " + item.name + "\n\n" +
-        "1. Chỉnh sửa giá cả\n" +
-        "2. Chỉnh sửa số lượng\n" +
-        "3. Xoá mặt hàng\n" +
-        "4. Hoàn thành chỉnh sửa\n\n" +
+        "Đang chỉnh sửa sản phẩm: " + item.name + "
+
+" +
+        "1. Chỉnh sửa giá cả
+" +
+        "2. Chỉnh sửa số lượng
+" +
+        "3. Xoá mặt hàng
+" +
+        "4. Hoàn thành chỉnh sửa
+
+" +
         "Vui lòng nhập 1, 2, 3, hoặc 4:"
       );
 
@@ -253,7 +307,8 @@
 
       } else if (choice === "2") {
         let quantityText = prompt(
-          "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.\n" +
+          "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.
+" +
           "Vui lòng nhập số lượng tăng thêm hoặc giảm đi:"
         );
 
@@ -286,22 +341,23 @@
     }
 
     function sellItem() {
+      loadDailySummary();
+
       if (items.length === 0) {
         alert("Hiện chưa có mặt hàng nào trong kho.");
         return;
       }
 
-      let billNum = 0;
-      let totalRevenue = 0;
-      let totalSoldByName = {};
       let keepCreatingBills = true;
-      let finalText = "";
 
       while (keepCreatingBills) {
         let createNewBill = confirm(
-          "Bạn muốn tạo đơn hàng mới không?\n\n" +
-          "OK = Tạo đơn hàng mới\n" +
-          "Cancel = Hoàn thành bán hàng và tổng kết doanh số"
+          "Bạn muốn tạo đơn hàng mới không?
+
+" +
+          "OK = Tạo đơn hàng mới
+" +
+          "Cancel = Hoàn thành bán hàng"
         );
 
         if (!createNewBill) {
@@ -309,7 +365,6 @@
           break;
         }
 
-        billNum++;
         let soldItems = [];
         let soldQuantities = [];
         let keepSelling = true;
@@ -337,9 +392,13 @@
               alert("Sản phẩm này đã được chọn hết số lượng còn lại.");
             } else {
               let quantityText = prompt(
-                "Sản phẩm: " + item.name + "\n" +
-                "Giá: " + item.price + "\n" +
-                "Số lượng còn lại: " + availableQuantity + "\n\n" +
+                "Sản phẩm: " + item.name + "
+" +
+                "Giá: " + item.price + "
+" +
+                "Số lượng còn lại: " + availableQuantity + "
+
+" +
                 "Vui lòng nhập số lượng muốn bán:"
               );
 
@@ -360,19 +419,23 @@
           }
 
           keepSelling = confirm(
-            "Bạn muốn thêm sản phẩm khác vào đơn hàng này không?\n\n" +
-            "OK = Thêm sản phẩm khác\n" +
+            "Bạn muốn thêm sản phẩm khác vào đơn hàng này không?
+
+" +
+            "OK = Thêm sản phẩm khác
+" +
             "Cancel = Kiểm tra và xác nhận đơn hàng"
           );
         }
 
         if (soldItems.length === 0) {
           alert("Đơn hàng chưa có sản phẩm nào.");
-          billNum--;
           continue;
         }
 
-        let billSummary = "Đơn hàng số: " + billNum + "\n\n";
+        let billSummary = "Đơn hàng mới
+
+";
         let billTotal = 0;
 
         for (let i = 0; i < soldItems.length; i++) {
@@ -381,20 +444,32 @@
           let lineTotal = Number(item.price) * quantitySold;
           billTotal += lineTotal;
 
-          billSummary += "Tên sản phẩm: " + item.name + "\n";
-          billSummary += "Giá: " + item.price + "\n";
-          billSummary += "Số lượng bán: " + quantitySold + "\n";
-          billSummary += "Thành tiền: " + lineTotal + "\n";
-          billSummary += "Số lượng còn lại sau khi bán: " + (Number(item.quantity) - quantitySold) + "\n";
-          billSummary += "-------------------------\n";
+          billSummary += "Tên sản phẩm: " + item.name + "
+";
+          billSummary += "Giá: " + item.price + "
+";
+          billSummary += "Số lượng bán: " + quantitySold + "
+";
+          billSummary += "Thành tiền: " + lineTotal + "
+";
+          billSummary += "Số lượng còn lại sau khi bán: " + (Number(item.quantity) - quantitySold) + "
+";
+          billSummary += "-------------------------
+";
         }
 
-        billSummary += "\nTổng tiền đơn hàng: " + billTotal;
-        billSummary += "\n\nBạn có muốn xác nhận bán hàng và cập nhật kho không?";
+        billSummary += "
+Tổng tiền đơn hàng: " + billTotal;
+        billSummary += "
+
+Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
 
         let confirmBill = confirm(billSummary);
 
         if (confirmBill) {
+          dailySummary.billNum += 1;
+          dailySummary.totalRevenue += billTotal;
+
           for (let i = 0; i < soldItems.length; i++) {
             let soldName = soldItems[i].name;
             let quantitySold = soldQuantities[i];
@@ -404,49 +479,68 @@
               currentItem.quantity = Number(currentItem.quantity) - quantitySold;
             }
 
-            if (!totalSoldByName[soldName]) {
-              totalSoldByName[soldName] = 0;
+            if (!dailySummary.totalSoldByName[soldName]) {
+              dailySummary.totalSoldByName[soldName] = 0;
             }
 
-            totalSoldByName[soldName] += quantitySold;
+            dailySummary.totalSoldByName[soldName] += quantitySold;
           }
 
-          totalRevenue += billTotal;
           saveData();
-          alert("Đã xác nhận đơn hàng và cập nhật danh sách hàng còn lại.");
+          saveDailySummary();
+          alert("Đã xác nhận đơn hàng và cập nhật kho.
+Bạn có thể bấm 'Tổng kết bán hàng trong ngày' để xem tổng kết.");
         } else {
-          billNum--;
           alert("Đơn hàng đã bị huỷ. Kho hàng không thay đổi.");
         }
       }
 
-      finalText += "Tổng kết bán ngày " + formatDate() + "\n\n";
-      finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
-      finalText += "Tổng doanh thu: " + totalRevenue + "\n\n";
+      showMessage("Đã hoàn thành bán hàng.
+Bấm 'Tổng kết bán hàng trong ngày' để xem tổng kết doanh số hôm nay.");
+    }
 
-      finalText += "Tổng số hàng đã bán mỗi loại:\n";
+    function showDailySummary() {
+      loadDailySummary();
 
-      let productNames = Object.keys(totalSoldByName);
+      let summaryText = "Tổng kết bán ngày " + dailySummary.displayDate + "
+
+";
+      summaryText += "Tổng số đơn hàng đã bán: " + dailySummary.billNum + "
+";
+      summaryText += "Tổng doanh thu: " + dailySummary.totalRevenue + "
+
+";
+
+      summaryText += "Tổng số hàng đã bán mỗi loại:
+";
+
+      let productNames = Object.keys(dailySummary.totalSoldByName);
 
       if (productNames.length === 0) {
-        finalText += "Chưa bán sản phẩm nào.\n";
+        summaryText += "Chưa bán sản phẩm nào.
+";
       } else {
         for (let productName of productNames) {
-          finalText += productName + ": " + totalSoldByName[productName] + "\n";
+          summaryText += productName + ": " + dailySummary.totalSoldByName[productName] + "
+";
         }
       }
 
-      finalText += "\nTổng số lượng các mặt hàng còn lại trong kho:\n";
+      summaryText += "
+Tổng số lượng các mặt hàng còn lại trong kho:
+";
 
       if (items.length === 0) {
-        finalText += "Không còn mặt hàng nào trong kho.\n";
+        summaryText += "Không còn mặt hàng nào trong kho.
+";
       } else {
         for (let item of items) {
-          finalText += item.name + ": " + item.quantity + "\n";
+          summaryText += item.name + ": " + item.quantity + "
+";
         }
       }
 
-      showMessage(finalText);
+      showMessage(summaryText);
     }
 
     function showList() {
@@ -455,32 +549,44 @@
         return;
       }
 
-      let storage = "DANH SÁCH MẶT HÀNG TRONG KHO\n\n";
+      let storage = "DANH SÁCH MẶT HÀNG TRONG KHO
+
+";
 
       for (let item of items) {
-        storage += "Sản phẩm: " + item.name + "\n";
-        storage += "Giá: " + item.price + "\n";
-        storage += "Số lượng còn lại: " + item.quantity + "\n";
-        storage += "-------------------------\n";
+        storage += "Sản phẩm: " + item.name + "
+";
+        storage += "Giá: " + item.price + "
+";
+        storage += "Số lượng còn lại: " + item.quantity + "
+";
+        storage += "-------------------------
+";
       }
 
       showMessage(storage);
     }
 
     function clearStorage() {
-      let confirmClear = confirm("Bạn có chắc chắn muốn xoá toàn bộ dữ liệu?");
+      let confirmClear = confirm("Bạn có chắc chắn muốn xoá toàn bộ dữ liệu kho hàng không?");
 
       if (confirmClear) {
         items = [];
         saveData();
-        showMessage("Đã xoá toàn bộ dữ liệu trong kho.");
+        showMessage("Đã xoá toàn bộ dữ liệu trong kho.
+Lưu ý: tổng kết bán hàng trong ngày không bị xoá.");
       } else {
         showMessage("Đã huỷ xoá dữ liệu.");
       }
     }
 
     function exportData() {
-      const dataText = JSON.stringify(items, null, 2);
+      const backupData = {
+        items: items,
+        dailySummary: dailySummary
+      };
+
+      const dataText = JSON.stringify(backupData, null, 2);
       const fileBlob = new Blob([dataText], { type: "application/json" });
       const fileURL = URL.createObjectURL(fileBlob);
 
@@ -494,8 +600,10 @@
       URL.revokeObjectURL(fileURL);
 
       showMessage(
-        "Dữ liệu đã được tải xuống thành file goods_storage_data.json.\n\n" +
-        "Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud Drive để dùng trên thiết bị khác."
+        "Dữ liệu đã được tải xuống thành file goods_storage_data.json.
+
+" +
+        "File này bao gồm kho hàng và tổng kết bán hàng trong ngày."
       );
     }
 
@@ -515,13 +623,20 @@
       reader.onload = function(e) {
         try {
           const importedData = JSON.parse(e.target.result);
+          let importedItems = [];
+          let importedSummary = null;
 
-          if (!Array.isArray(importedData)) {
+          if (Array.isArray(importedData)) {
+            importedItems = importedData;
+          } else if (importedData.items && Array.isArray(importedData.items)) {
+            importedItems = importedData.items;
+            importedSummary = importedData.dailySummary || null;
+          } else {
             alert("File không đúng định dạng dữ liệu.");
             return;
           }
 
-          for (let item of importedData) {
+          for (let item of importedItems) {
             if (
               typeof item.name !== "string" ||
               typeof item.price !== "number" ||
@@ -533,16 +648,27 @@
           }
 
           let confirmImport = confirm(
-            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?\n\n" +
-            "OK = Thay thế dữ liệu hiện tại\n" +
+            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?
+
+" +
+            "OK = Thay thế dữ liệu hiện tại
+" +
             "Cancel = Huỷ tải dữ liệu lên"
           );
 
           if (confirmImport) {
-            items = importedData;
+            items = importedItems;
             saveData();
+
+            if (importedSummary && importedSummary.dateKey === getTodayKey()) {
+              dailySummary = importedSummary;
+              saveDailySummary();
+            }
+
             showMessage(
-              "Đã tải dữ liệu từ file lên thành công.\n\n" +
+              "Đã tải dữ liệu từ file lên thành công.
+
+" +
               "Số mặt hàng hiện có: " + items.length
             );
           }
@@ -558,6 +684,7 @@
 
     function exitApp() {
       saveData();
+      saveDailySummary();
       alert("Dữ liệu đã được lưu. Trên iPad/Safari, bạn chỉ cần đóng tab hoặc quay về màn hình chính.");
     }
 
@@ -576,6 +703,7 @@
     connectButton("updateBtn", updateItem);
     connectButton("sellBtn", sellItem);
     connectButton("listBtn", showList);
+    connectButton("summaryBtn", showDailySummary);
     connectButton("clearBtn", clearStorage);
     connectButton("exitBtn", exitApp);
     connectButton("exportBtn", exportData);
