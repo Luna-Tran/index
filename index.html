@@ -33,6 +33,10 @@
       gap: 24px;
     }
 
+    .hidden-file-input {
+      display: none;
+    }
+
     button {
       font-family: Georgia, serif;
       font-size: 24px;
@@ -101,7 +105,11 @@
       <button id="listBtn">Danh sách mặt hàng</button>
       <button id="clearBtn">Xoá dữ liệu</button>
       <button id="exitBtn">Thoát ứng dụng</button>
+      <button id="exportBtn">Tải dữ liệu xuống</button>
+      <button id="importBtn">Tải dữ liệu lên</button>
     </section>
+
+    <input type="file" id="importFile" class="hidden-file-input" accept=".json,application/json" />
 
     <section id="output" class="output center-output">
       Chọn chức năng để bắt đầu.
@@ -441,6 +449,83 @@
       }
     }
 
+    function exportData() {
+      const dataText = JSON.stringify(items, null, 2);
+      const fileBlob = new Blob([dataText], { type: "application/json" });
+      const fileURL = URL.createObjectURL(fileBlob);
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = fileURL;
+      downloadLink.download = "goods_storage_data.json";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      URL.revokeObjectURL(fileURL);
+      showMessage("Dữ liệu đã được tải xuống thành file goods_storage_data.json.
+
+Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud Drive để dùng trên thiết bị khác.");
+    }
+
+    function importData() {
+      document.getElementById("importFile").click();
+    }
+
+    function handleImportFile(event) {
+      const file = event.target.files[0];
+
+      if (!file) {
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+
+          if (!Array.isArray(importedData)) {
+            alert("File không đúng định dạng dữ liệu.");
+            return;
+          }
+
+          for (let item of importedData) {
+            if (
+              typeof item.name !== "string" ||
+              typeof item.price !== "number" ||
+              typeof item.quantity !== "number"
+            ) {
+              alert("File có dữ liệu sản phẩm không hợp lệ.");
+              return;
+            }
+          }
+
+          let confirmImport = confirm(
+            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?
+
+" +
+            "OK = Thay thế dữ liệu hiện tại
+" +
+            "Cancel = Huỷ tải dữ liệu lên"
+          );
+
+          if (confirmImport) {
+            items = importedData;
+            saveData();
+            showMessage("Đã tải dữ liệu từ file lên thành công.
+
+Số mặt hàng hiện có: " + items.length);
+          }
+        } catch (error) {
+          alert("Không thể đọc file. Vui lòng chọn đúng file goods_storage_data.json.");
+        }
+
+        event.target.value = "";
+      };
+
+      reader.readAsText(file);
+    }
+
     function exitApp() {
       saveData();
       alert("Dữ liệu đã được lưu. Trên iPad/Safari, bạn chỉ cần đóng tab hoặc quay về màn hình chính.");
@@ -462,6 +547,10 @@
     connectButton("listBtn", showList);
     connectButton("clearBtn", clearStorage);
     connectButton("exitBtn", exitApp);
+    connectButton("exportBtn", exportData);
+    connectButton("importBtn", importData);
+
+    document.getElementById("importFile").addEventListener("change", handleImportFile);
   </script>
 </body>
 </html>
