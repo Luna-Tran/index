@@ -169,6 +169,16 @@
       );
     }
 
+    function calculateTotalInventory() {
+      let total = 0;
+
+      for (let item of items) {
+        total += Number(item.quantity);
+      }
+
+      return total;
+    }
+
     function addItem() {
       let name = prompt("Vui lòng nhập tên sản phẩm:");
 
@@ -294,6 +304,8 @@
       let billNum = 0;
       let totalRevenue = 0;
       let totalSoldByName = {};
+      let totalSoldQuantityToday = 0;
+      let startingInventory = calculateTotalInventory();
       let keepCreatingBills = true;
       let finalText = "";
 
@@ -326,12 +338,12 @@
             let alreadySoldInThisBill = 0;
 
             for (let i = 0; i < soldItems.length; i++) {
-              if (soldItems[i] === item) {
+              if (soldItems[i].name.toLowerCase() === item.name.toLowerCase()) {
                 alreadySoldInThisBill += soldQuantities[i];
               }
             }
 
-            let availableQuantity = item.quantity - alreadySoldInThisBill;
+            let availableQuantity = Number(item.quantity) - alreadySoldInThisBill;
 
             if (availableQuantity <= 0) {
               alert("Sản phẩm này đã được chọn hết số lượng còn lại.");
@@ -378,14 +390,14 @@
         for (let i = 0; i < soldItems.length; i++) {
           let item = soldItems[i];
           let quantitySold = soldQuantities[i];
-          let lineTotal = item.price * quantitySold;
+          let lineTotal = Number(item.price) * quantitySold;
           billTotal += lineTotal;
 
           billSummary += "Tên sản phẩm: " + item.name + "\n";
           billSummary += "Giá: " + item.price + "\n";
           billSummary += "Số lượng bán: " + quantitySold + "\n";
           billSummary += "Thành tiền: " + lineTotal + "\n";
-          billSummary += "Số lượng còn lại sau khi bán: " + (item.quantity - quantitySold) + "\n";
+          billSummary += "Số lượng còn lại sau khi bán: " + (Number(item.quantity) - quantitySold) + "\n";
           billSummary += "-------------------------\n";
         }
 
@@ -396,16 +408,20 @@
 
         if (confirmBill) {
           for (let i = 0; i < soldItems.length; i++) {
-            let item = soldItems[i];
+            let soldName = soldItems[i].name;
             let quantitySold = soldQuantities[i];
+            let currentItem = findItemByName(soldName);
 
-            item.quantity -= quantitySold;
-
-            if (!totalSoldByName[item.name]) {
-              totalSoldByName[item.name] = 0;
+            if (currentItem) {
+              currentItem.quantity = Number(currentItem.quantity) - quantitySold;
             }
 
-            totalSoldByName[item.name] += quantitySold;
+            if (!totalSoldByName[soldName]) {
+              totalSoldByName[soldName] = 0;
+            }
+
+            totalSoldByName[soldName] += quantitySold;
+            totalSoldQuantityToday += quantitySold;
           }
 
           totalRevenue += billTotal;
@@ -416,6 +432,8 @@
           alert("Đơn hàng đã bị huỷ. Kho hàng không thay đổi.");
         }
       }
+
+      let inventoryLeftAfterSelling = startingInventory - totalSoldQuantityToday;
 
       finalText += "Tổng kết bán hàng ngày " + formatDate() + "\n\n";
       finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
@@ -432,13 +450,10 @@
         }
       }
 
-      let totalInventoryLeft = 0;
+      finalText += "\nTổng số lượng hàng ban đầu: " + startingInventory;
+      finalText += "\nTổng số lượng hàng đã bán: " + totalSoldQuantityToday;
+      finalText += "\nTổng số lượng hàng tồn kho sau khi bán: " + inventoryLeftAfterSelling;
 
-      for (let item of items) {
-        totalInventoryLeft += item.quantity;
-      }
-
-      finalText += "\nTổng số lượng hàng tồn kho: " + totalInventoryLeft;
       showMessage(finalText);
     }
 
