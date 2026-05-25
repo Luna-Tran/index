@@ -463,39 +463,40 @@ Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
         }
       }
 
-      let inventoryLeftAfterSelling = startingInventory - totalSoldQuantityToday;
+     let inventoryLeftAfterSelling = calculateTotalInventory();
 
-      finalText += "Tổng kết bán hàng ngày " + formatDate() + "
+finalText += "Tổng kết bán hàng ngày " + formatDate() + "\n\n";
+finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
+finalText += "Tổng doanh số: " + totalRevenue + "\n\n";
+finalText += "Tổng số lượng hàng đã bán mỗi loại:\n";
 
-";
-      finalText += "Tổng số đơn hàng đã bán: " + billNum + "
-";
-      finalText += "Tổng doanh số: " + totalRevenue + "
+let productNames = Object.keys(totalSoldByName);
 
-";
-      finalText += "Tổng số lượng hàng đã bán mỗi loại:
-";
+if (productNames.length === 0) {
+  finalText += "Chưa bán sản phẩm nào.\n";
+} else {
+  for (let productName of productNames) {
+    finalText += productName + ": " + totalSoldByName[productName] + "\n";
+  }
+}
 
-      let productNames = Object.keys(totalSoldByName);
+finalText += "\nSố lượng còn lại của mặt hàng vừa bán:\n";
 
-      if (productNames.length === 0) {
-        finalText += "Chưa bán sản phẩm nào.
-";
-      } else {
-        for (let productName of productNames) {
-          finalText += productName + ": " + totalSoldByName[productName] + "
-";
-        }
-      }
+if (productNames.length === 0) {
+  finalText += "Không có mặt hàng nào được bán.\n";
+} else {
+  for (let productName of productNames) {
+    let item = findItemByName(productName);
 
-      finalText += "
-Tổng số lượng hàng ban đầu: " + startingInventory;
-      finalText += "
-Tổng số lượng hàng đã bán: " + totalSoldQuantityToday;
-      finalText += "
-Tổng số lượng hàng tồn kho sau khi bán: " + inventoryLeftAfterSelling;
+    if (item) {
+      finalText += productName + " còn lại: " + item.quantity + "\n";
+    }
+  }
+}
 
-      showMessage(finalText);
+finalText += "\nTổng số lượng tất cả mặt hàng trong kho sau khi bán: " + inventoryLeftAfterSelling;
+
+showMessage(finalText);
     }
 
     function showList() {
