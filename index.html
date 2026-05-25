@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quản lý hàng hoá</title>
+
   <style>
     body {
       margin: 0;
@@ -54,7 +55,6 @@
       background: #e9e9e9;
     }
 
-
     .output {
       margin-top: 30px;
       background: white;
@@ -94,6 +94,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>Quản lý hàng hoá</header>
 
@@ -109,7 +110,12 @@
       <button id="importBtn">Tải dữ liệu lên</button>
     </section>
 
-    <input type="file" id="importFile" class="hidden-file-input" accept=".json,application/json" />
+    <input
+      type="file"
+      id="importFile"
+      class="hidden-file-input"
+      accept=".json,application/json"
+    />
 
     <section id="output" class="output center-output">
       Chọn chức năng để bắt đầu.
@@ -158,7 +164,9 @@
     }
 
     function findItemByName(name) {
-      return items.find(item => item.name.toLowerCase() === name.trim().toLowerCase());
+      return items.find(
+        item => item.name.toLowerCase() === name.trim().toLowerCase()
+      );
     }
 
     function addItem() {
@@ -169,7 +177,10 @@
       }
 
       if (findItemByName(name)) {
-        alert("Sản phẩm này đã tồn tại trong kho.\nVui lòng sử dụng nút 'Cập nhật thông tin hàng hoá' để chỉnh sửa số lượng hoặc giá.");
+        alert(
+          "Sản phẩm này đã tồn tại trong kho.\n" +
+          "Vui lòng sử dụng nút 'Cập nhật thông tin hàng hoá' để chỉnh sửa số lượng hoặc giá."
+        );
         return;
       }
 
@@ -245,6 +256,7 @@
           "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.\n" +
           "Vui lòng nhập số lượng tăng thêm hoặc giảm đi:"
         );
+
         if (quantityText === null || quantityText.trim() === "") return;
 
         let quantityChange = parseFloat(quantityText);
@@ -264,6 +276,7 @@
 
       } else if (choice === "3") {
         let confirmDelete = confirm("Bạn có chắc chắn muốn xoá mặt hàng này không?");
+
         if (confirmDelete) {
           items = items.filter(product => product !== item);
           saveData();
@@ -285,7 +298,11 @@
       let finalText = "";
 
       while (keepCreatingBills) {
-        let createNewBill = confirm("Bạn muốn tạo đơn hàng mới không?\n\nOK = Tạo đơn hàng mới\nCancel = Hoàn thành bán hàng và tổng kết doanh số");
+        let createNewBill = confirm(
+          "Bạn muốn tạo đơn hàng mới không?\n\n" +
+          "OK = Tạo đơn hàng mới\n" +
+          "Cancel = Hoàn thành bán hàng và tổng kết doanh số"
+        );
 
         if (!createNewBill) {
           keepCreatingBills = false;
@@ -342,7 +359,11 @@
             }
           }
 
-          keepSelling = confirm("Bạn muốn thêm sản phẩm khác vào đơn hàng này không?\n\nOK = Thêm sản phẩm khác\nCancel = Kiểm tra và xác nhận đơn hàng");
+          keepSelling = confirm(
+            "Bạn muốn thêm sản phẩm khác vào đơn hàng này không?\n\n" +
+            "OK = Thêm sản phẩm khác\n" +
+            "Cancel = Kiểm tra và xác nhận đơn hàng"
+          );
         }
 
         if (soldItems.length === 0) {
@@ -402,6 +423,7 @@
       finalText += "Tổng số lượng hàng đã bán mỗi loại:\n";
 
       let productNames = Object.keys(totalSoldByName);
+
       if (productNames.length === 0) {
         finalText += "Chưa bán sản phẩm nào.\n";
       } else {
@@ -411,6 +433,7 @@
       }
 
       let totalInventoryLeft = 0;
+
       for (let item of items) {
         totalInventoryLeft += item.quantity;
       }
@@ -462,9 +485,11 @@
       document.body.removeChild(downloadLink);
 
       URL.revokeObjectURL(fileURL);
-      showMessage("Dữ liệu đã được tải xuống thành file goods_storage_data.json.
 
-Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud Drive để dùng trên thiết bị khác.");
+      showMessage(
+        "Dữ liệu đã được tải xuống thành file goods_storage_data.json.\n\n" +
+        "Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud Drive để dùng trên thiết bị khác."
+      );
     }
 
     function importData() {
@@ -501,20 +526,18 @@ Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud 
           }
 
           let confirmImport = confirm(
-            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?
-
-" +
-            "OK = Thay thế dữ liệu hiện tại
-" +
+            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?\n\n" +
+            "OK = Thay thế dữ liệu hiện tại\n" +
             "Cancel = Huỷ tải dữ liệu lên"
           );
 
           if (confirmImport) {
             items = importedData;
             saveData();
-            showMessage("Đã tải dữ liệu từ file lên thành công.
-
-Số mặt hàng hiện có: " + items.length);
+            showMessage(
+              "Đã tải dữ liệu từ file lên thành công.\n\n" +
+              "Số mặt hàng hiện có: " + items.length
+            );
           }
         } catch (error) {
           alert("Không thể đọc file. Vui lòng chọn đúng file goods_storage_data.json.");
@@ -530,6 +553,7 @@ Số mặt hàng hiện có: " + items.length);
       saveData();
       alert("Dữ liệu đã được lưu. Trên iPad/Safari, bạn chỉ cần đóng tab hoặc quay về màn hình chính.");
     }
+
     function connectButton(buttonId, action) {
       const button = document.getElementById(buttonId);
 
