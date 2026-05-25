@@ -188,8 +188,7 @@
 
       if (findItemByName(name)) {
         alert(
-          "Sản phẩm này đã tồn tại trong kho.
-" +
+          "Sản phẩm này đã tồn tại trong kho.\n" +
           "Vui lòng sử dụng nút 'Cập nhật thông tin hàng hoá' để chỉnh sửa số lượng hoặc giá."
         );
         return;
@@ -240,18 +239,11 @@
       }
 
       let choice = prompt(
-        "Đang chỉnh sửa sản phẩm: " + item.name + "
-
-" +
-        "1. Chỉnh sửa giá cả
-" +
-        "2. Chỉnh sửa số lượng
-" +
-        "3. Xoá mặt hàng
-" +
-        "4. Hoàn thành chỉnh sửa
-
-" +
+        "Đang chỉnh sửa sản phẩm: " + item.name + "\n\n" +
+        "1. Chỉnh sửa giá cả\n" +
+        "2. Chỉnh sửa số lượng\n" +
+        "3. Xoá mặt hàng\n" +
+        "4. Hoàn thành chỉnh sửa\n\n" +
         "Vui lòng nhập 1, 2, 3, hoặc 4:"
       );
 
@@ -271,8 +263,7 @@
 
       } else if (choice === "2") {
         let quantityText = prompt(
-          "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.
-" +
+          "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.\n" +
           "Vui lòng nhập số lượng tăng thêm hoặc giảm đi:"
         );
 
@@ -284,12 +275,12 @@
           return;
         }
 
-        if (item.quantity + quantityChange < 0) {
+        if (Number(item.quantity) + quantityChange < 0) {
           alert("Không thể cập nhật vì số lượng sẽ nhỏ hơn 0.");
           return;
         }
 
-        item.quantity += quantityChange;
+        item.quantity = Number(item.quantity) + quantityChange;
         saveData();
         showMessage("Đã cập nhật số lượng sản phẩm thành công.");
 
@@ -313,18 +304,13 @@
       let billNum = 0;
       let totalRevenue = 0;
       let totalSoldByName = {};
-      let totalSoldQuantityToday = 0;
-      let startingInventory = calculateTotalInventory();
       let keepCreatingBills = true;
       let finalText = "";
 
       while (keepCreatingBills) {
         let createNewBill = confirm(
-          "Bạn muốn tạo đơn hàng mới không?
-
-" +
-          "OK = Tạo đơn hàng mới
-" +
+          "Bạn muốn tạo đơn hàng mới không?\n\n" +
+          "OK = Tạo đơn hàng mới\n" +
           "Cancel = Hoàn thành bán hàng và tổng kết doanh số"
         );
 
@@ -361,13 +347,9 @@
               alert("Sản phẩm này đã được chọn hết số lượng còn lại.");
             } else {
               let quantityText = prompt(
-                "Sản phẩm: " + item.name + "
-" +
-                "Giá: " + item.price + "
-" +
-                "Số lượng còn lại: " + availableQuantity + "
-
-" +
+                "Sản phẩm: " + item.name + "\n" +
+                "Giá: " + item.price + "\n" +
+                "Số lượng còn lại: " + availableQuantity + "\n\n" +
                 "Vui lòng nhập số lượng muốn bán:"
               );
 
@@ -388,11 +370,8 @@
           }
 
           keepSelling = confirm(
-            "Bạn muốn thêm sản phẩm khác vào đơn hàng này không?
-
-" +
-            "OK = Thêm sản phẩm khác
-" +
+            "Bạn muốn thêm sản phẩm khác vào đơn hàng này không?\n\n" +
+            "OK = Thêm sản phẩm khác\n" +
             "Cancel = Kiểm tra và xác nhận đơn hàng"
           );
         }
@@ -403,9 +382,7 @@
           continue;
         }
 
-        let billSummary = "Đơn hàng số: " + billNum + "
-
-";
+        let billSummary = "Đơn hàng số: " + billNum + "\n\n";
         let billTotal = 0;
 
         for (let i = 0; i < soldItems.length; i++) {
@@ -414,25 +391,16 @@
           let lineTotal = Number(item.price) * quantitySold;
           billTotal += lineTotal;
 
-          billSummary += "Tên sản phẩm: " + item.name + "
-";
-          billSummary += "Giá: " + item.price + "
-";
-          billSummary += "Số lượng bán: " + quantitySold + "
-";
-          billSummary += "Thành tiền: " + lineTotal + "
-";
-          billSummary += "Số lượng còn lại sau khi bán: " + (Number(item.quantity) - quantitySold) + "
-";
-          billSummary += "-------------------------
-";
+          billSummary += "Tên sản phẩm: " + item.name + "\n";
+          billSummary += "Giá: " + item.price + "\n";
+          billSummary += "Số lượng bán: " + quantitySold + "\n";
+          billSummary += "Thành tiền: " + lineTotal + "\n";
+          billSummary += "Số lượng còn lại sau khi bán: " + (Number(item.quantity) - quantitySold) + "\n";
+          billSummary += "-------------------------\n";
         }
 
-        billSummary += "
-Tổng tiền đơn hàng: " + billTotal;
-        billSummary += "
-
-Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
+        billSummary += "\nTổng tiền đơn hàng: " + billTotal;
+        billSummary += "\n\nBạn có muốn xác nhận bán hàng và cập nhật kho không?";
 
         let confirmBill = confirm(billSummary);
 
@@ -451,7 +419,6 @@ Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
             }
 
             totalSoldByName[soldName] += quantitySold;
-            totalSoldQuantityToday += quantitySold;
           }
 
           totalRevenue += billTotal;
@@ -463,40 +430,38 @@ Bạn có muốn xác nhận bán hàng và cập nhật kho không?";
         }
       }
 
-     let inventoryLeftAfterSelling = calculateTotalInventory();
+      finalText += "Tổng kết bán hàng ngày " + formatDate() + "\n\n";
+      finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
+      finalText += "Tổng doanh số: " + totalRevenue + "\n\n";
+      finalText += "Tổng số lượng hàng đã bán mỗi loại:\n";
 
-finalText += "Tổng kết bán hàng ngày " + formatDate() + "\n\n";
-finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
-finalText += "Tổng doanh số: " + totalRevenue + "\n\n";
-finalText += "Tổng số lượng hàng đã bán mỗi loại:\n";
+      let productNames = Object.keys(totalSoldByName);
 
-let productNames = Object.keys(totalSoldByName);
+      if (productNames.length === 0) {
+        finalText += "Chưa bán sản phẩm nào.\n";
+      } else {
+        for (let productName of productNames) {
+          finalText += productName + ": " + totalSoldByName[productName] + "\n";
+        }
+      }
 
-if (productNames.length === 0) {
-  finalText += "Chưa bán sản phẩm nào.\n";
-} else {
-  for (let productName of productNames) {
-    finalText += productName + ": " + totalSoldByName[productName] + "\n";
-  }
-}
+      finalText += "\nSố lượng còn lại của mặt hàng vừa bán:\n";
 
-finalText += "\nSố lượng còn lại của mặt hàng vừa bán:\n";
+      if (productNames.length === 0) {
+        finalText += "Không có mặt hàng nào được bán.\n";
+      } else {
+        for (let productName of productNames) {
+          let item = findItemByName(productName);
 
-if (productNames.length === 0) {
-  finalText += "Không có mặt hàng nào được bán.\n";
-} else {
-  for (let productName of productNames) {
-    let item = findItemByName(productName);
+          if (item) {
+            finalText += productName + " còn lại: " + item.quantity + "\n";
+          }
+        }
+      }
 
-    if (item) {
-      finalText += productName + " còn lại: " + item.quantity + "\n";
-    }
-  }
-}
+      finalText += "\nTổng số lượng tất cả mặt hàng trong kho sau khi bán: " + calculateTotalInventory();
 
-finalText += "\nTổng số lượng tất cả mặt hàng trong kho sau khi bán: " + inventoryLeftAfterSelling;
-
-showMessage(finalText);
+      showMessage(finalText);
     }
 
     function showList() {
@@ -505,19 +470,13 @@ showMessage(finalText);
         return;
       }
 
-      let storage = "DANH SÁCH MẶT HÀNG TRONG KHO
-
-";
+      let storage = "DANH SÁCH MẶT HÀNG TRONG KHO\n\n";
 
       for (let item of items) {
-        storage += "Sản phẩm: " + item.name + "
-";
-        storage += "Giá: " + item.price + "
-";
-        storage += "Số lượng còn lại: " + item.quantity + "
-";
-        storage += "-------------------------
-";
+        storage += "Sản phẩm: " + item.name + "\n";
+        storage += "Giá: " + item.price + "\n";
+        storage += "Số lượng còn lại: " + item.quantity + "\n";
+        storage += "-------------------------\n";
       }
 
       showMessage(storage);
@@ -550,9 +509,7 @@ showMessage(finalText);
       URL.revokeObjectURL(fileURL);
 
       showMessage(
-        "Dữ liệu đã được tải xuống thành file goods_storage_data.json.
-
-" +
+        "Dữ liệu đã được tải xuống thành file goods_storage_data.json.\n\n" +
         "Bạn có thể gửi file này qua AirDrop, email, Google Drive, hoặc iCloud Drive để dùng trên thiết bị khác."
       );
     }
@@ -591,11 +548,8 @@ showMessage(finalText);
           }
 
           let confirmImport = confirm(
-            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?
-
-" +
-            "OK = Thay thế dữ liệu hiện tại
-" +
+            "Bạn muốn thay thế dữ liệu hiện tại bằng dữ liệu trong file này không?\n\n" +
+            "OK = Thay thế dữ liệu hiện tại\n" +
             "Cancel = Huỷ tải dữ liệu lên"
           );
 
@@ -603,9 +557,7 @@ showMessage(finalText);
             items = importedData;
             saveData();
             showMessage(
-              "Đã tải dữ liệu từ file lên thành công.
-
-" +
+              "Đã tải dữ liệu từ file lên thành công.\n\n" +
               "Số mặt hàng hiện có: " + items.length
             );
           }
