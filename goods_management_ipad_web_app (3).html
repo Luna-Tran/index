@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản lý hàng hoá</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      text-align: center;
+      padding: 24px 12px;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 20px;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    button {
+      font-family: Georgia, serif;
+      font-size: 24px;
+      font-weight: bold;
+      padding: 28px 16px;
+      border: none;
+      border-radius: 18px;
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #e9e9e9;
+    }
+
+
+    .output {
+      margin-top: 30px;
+      background: white;
+      padding: 24px;
+      border-radius: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      white-space: pre-wrap;
+      font-size: 22px;
+      line-height: 1.5;
+      min-height: 220px;
+      text-align: left;
+    }
+
+    .center-output {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      .button-grid {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        font-size: 26px;
+      }
+
+      button {
+        font-size: 20px;
+      }
+
+      .output {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>Quản lý hàng hoá</header>
+
+  <main class="container">
+    <section class="button-grid">
+      <button id="addBtn">Nhập mặt hàng mới</button>
+      <button id="updateBtn">Cập nhật thông tin hàng hoá</button>
+      <button id="sellBtn">Tiến hành bán hàng</button>
+      <button id="listBtn">Danh sách mặt hàng</button>
+      <button id="clearBtn">Xoá dữ liệu</button>
+      <button id="exitBtn">Thoát ứng dụng</button>
+    </section>
+
+    <section id="output" class="output center-output">
+      Chọn chức năng để bắt đầu.
+    </section>
+  </main>
+
+  <script>
+    let items = [];
+
+    function loadData() {
+      try {
+        const savedData = localStorage.getItem("goodsData");
+        items = savedData ? JSON.parse(savedData) : [];
+
+        if (!Array.isArray(items)) {
+          items = [];
+        }
+      } catch (error) {
+        items = [];
+        localStorage.removeItem("goodsData");
+      }
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem("goodsData", JSON.stringify(items));
+      } catch (error) {
+        alert("Không thể lưu dữ liệu trên trình duyệt này.");
+      }
+    }
+
+    loadData();
+
+    function showMessage(message) {
+      const output = document.getElementById("output");
+      output.classList.remove("center-output");
+      output.textContent = message;
+    }
+
+    function formatDate() {
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      const year = today.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+
+    function findItemByName(name) {
+      return items.find(item => item.name.toLowerCase() === name.trim().toLowerCase());
+    }
+
+    function addItem() {
+      let name = prompt("Vui lòng nhập tên sản phẩm:");
+
+      if (name === null || name.trim() === "") {
+        return;
+      }
+
+      if (findItemByName(name)) {
+        alert("Sản phẩm này đã tồn tại trong kho.\nVui lòng sử dụng nút 'Cập nhật thông tin hàng hoá' để chỉnh sửa số lượng hoặc giá.");
+        return;
+      }
+
+      let priceText = prompt("Vui lòng nhập giá sản phẩm:");
+      if (priceText === null || priceText.trim() === "") return;
+
+      let price = parseInt(priceText);
+      if (isNaN(price) || price < 0) {
+        alert("Vui lòng nhập giá bằng số hợp lệ.");
+        return;
+      }
+
+      let quantityText = prompt("Vui lòng nhập số lượng hàng còn lại:");
+      if (quantityText === null || quantityText.trim() === "") return;
+
+      let quantity = parseFloat(quantityText);
+      if (isNaN(quantity) || quantity < 0) {
+        alert("Vui lòng nhập số lượng bằng số hợp lệ.");
+        return;
+      }
+
+      items.push({
+        name: name.trim(),
+        price: price,
+        quantity: quantity
+      });
+
+      saveData();
+      showMessage("Đã thêm sản phẩm thành công.");
+    }
+
+    function updateItem() {
+      if (items.length === 0) {
+        alert("Hiện chưa có mặt hàng nào trong kho.");
+        return;
+      }
+
+      let name = prompt("Vui lòng nhập tên sản phẩm cần cập nhật:");
+      if (name === null || name.trim() === "") return;
+
+      let item = findItemByName(name);
+
+      if (!item) {
+        alert("Không tìm thấy sản phẩm tương thích.");
+        return;
+      }
+
+      let choice = prompt(
+        "Đang chỉnh sửa sản phẩm: " + item.name + "\n\n" +
+        "1. Chỉnh sửa giá cả\n" +
+        "2. Chỉnh sửa số lượng\n" +
+        "3. Xoá mặt hàng\n" +
+        "4. Hoàn thành chỉnh sửa\n\n" +
+        "Vui lòng nhập 1, 2, 3, hoặc 4:"
+      );
+
+      if (choice === "1") {
+        let newPriceText = prompt("Vui lòng nhập giá mới:");
+        if (newPriceText === null || newPriceText.trim() === "") return;
+
+        let newPrice = parseInt(newPriceText);
+        if (isNaN(newPrice) || newPrice < 0) {
+          alert("Vui lòng nhập giá bằng số hợp lệ.");
+          return;
+        }
+
+        item.price = newPrice;
+        saveData();
+        showMessage("Đã cập nhật giá thành công.");
+
+      } else if (choice === "2") {
+        let quantityText = prompt(
+          "Lưu ý: sử dụng dấu - nếu số lượng sản phẩm giảm đi.\n" +
+          "Vui lòng nhập số lượng tăng thêm hoặc giảm đi:"
+        );
+        if (quantityText === null || quantityText.trim() === "") return;
+
+        let quantityChange = parseFloat(quantityText);
+        if (isNaN(quantityChange)) {
+          alert("Vui lòng nhập số lượng bằng số hợp lệ.");
+          return;
+        }
+
+        if (item.quantity + quantityChange < 0) {
+          alert("Không thể cập nhật vì số lượng sẽ nhỏ hơn 0.");
+          return;
+        }
+
+        item.quantity += quantityChange;
+        saveData();
+        showMessage("Đã cập nhật số lượng sản phẩm thành công.");
+
+      } else if (choice === "3") {
+        let confirmDelete = confirm("Bạn có chắc chắn muốn xoá mặt hàng này không?");
+        if (confirmDelete) {
+          items = items.filter(product => product !== item);
+          saveData();
+          showMessage("Đã xoá mặt hàng.");
+        }
+      }
+    }
+
+    function sellItem() {
+      if (items.length === 0) {
+        alert("Hiện chưa có mặt hàng nào trong kho.");
+        return;
+      }
+
+      let billNum = 0;
+      let totalRevenue = 0;
+      let totalSoldByName = {};
+      let keepCreatingBills = true;
+      let finalText = "";
+
+      while (keepCreatingBills) {
+        let createNewBill = confirm("Bạn muốn tạo đơn hàng mới không?\n\nOK = Tạo đơn hàng mới\nCancel = Hoàn thành bán hàng và tổng kết doanh số");
+
+        if (!createNewBill) {
+          keepCreatingBills = false;
+          break;
+        }
+
+        billNum++;
+        let soldItems = [];
+        let soldQuantities = [];
+        let keepSelling = true;
+
+        while (keepSelling) {
+          let productName = prompt("Vui lòng nhập tên sản phẩm:");
+          if (productName === null || productName.trim() === "") break;
+
+          let item = findItemByName(productName);
+
+          if (!item) {
+            alert("Không tìm thấy sản phẩm tương ứng.");
+          } else {
+            let alreadySoldInThisBill = 0;
+
+            for (let i = 0; i < soldItems.length; i++) {
+              if (soldItems[i] === item) {
+                alreadySoldInThisBill += soldQuantities[i];
+              }
+            }
+
+            let availableQuantity = item.quantity - alreadySoldInThisBill;
+
+            if (availableQuantity <= 0) {
+              alert("Sản phẩm này đã được chọn hết số lượng còn lại.");
+            } else {
+              let quantityText = prompt(
+                "Sản phẩm: " + item.name + "\n" +
+                "Giá: " + item.price + "\n" +
+                "Số lượng còn lại: " + availableQuantity + "\n\n" +
+                "Vui lòng nhập số lượng muốn bán:"
+              );
+
+              if (quantityText !== null && quantityText.trim() !== "") {
+                let sellQuantity = parseFloat(quantityText);
+
+                if (isNaN(sellQuantity) || sellQuantity <= 0) {
+                  alert("Vui lòng nhập số lượng bằng số hợp lệ.");
+                } else if (sellQuantity > availableQuantity) {
+                  alert("Không đủ hàng. Số lượng hàng có thể cung cấp: " + availableQuantity);
+                } else {
+                  soldItems.push(item);
+                  soldQuantities.push(sellQuantity);
+                  alert("Đã thêm vào đơn hàng.");
+                }
+              }
+            }
+          }
+
+          keepSelling = confirm("Bạn muốn thêm sản phẩm khác vào đơn hàng này không?\n\nOK = Thêm sản phẩm khác\nCancel = Kiểm tra và xác nhận đơn hàng");
+        }
+
+        if (soldItems.length === 0) {
+          alert("Đơn hàng chưa có sản phẩm nào.");
+          billNum--;
+          continue;
+        }
+
+        let billSummary = "Đơn hàng số: " + billNum + "\n\n";
+        let billTotal = 0;
+
+        for (let i = 0; i < soldItems.length; i++) {
+          let item = soldItems[i];
+          let quantitySold = soldQuantities[i];
+          let lineTotal = item.price * quantitySold;
+          billTotal += lineTotal;
+
+          billSummary += "Tên sản phẩm: " + item.name + "\n";
+          billSummary += "Giá: " + item.price + "\n";
+          billSummary += "Số lượng bán: " + quantitySold + "\n";
+          billSummary += "Thành tiền: " + lineTotal + "\n";
+          billSummary += "Số lượng còn lại sau khi bán: " + (item.quantity - quantitySold) + "\n";
+          billSummary += "-------------------------\n";
+        }
+
+        billSummary += "\nTổng tiền đơn hàng: " + billTotal;
+        billSummary += "\n\nBạn có muốn xác nhận bán hàng và cập nhật kho không?";
+
+        let confirmBill = confirm(billSummary);
+
+        if (confirmBill) {
+          for (let i = 0; i < soldItems.length; i++) {
+            let item = soldItems[i];
+            let quantitySold = soldQuantities[i];
+
+            item.quantity -= quantitySold;
+
+            if (!totalSoldByName[item.name]) {
+              totalSoldByName[item.name] = 0;
+            }
+
+            totalSoldByName[item.name] += quantitySold;
+          }
+
+          totalRevenue += billTotal;
+          saveData();
+          alert("Đã xác nhận đơn hàng và cập nhật danh sách hàng còn lại.");
+        } else {
+          billNum--;
+          alert("Đơn hàng đã bị huỷ. Kho hàng không thay đổi.");
+        }
+      }
+
+      finalText += "Tổng kết bán hàng ngày " + formatDate() + "\n\n";
+      finalText += "Tổng số đơn hàng đã bán: " + billNum + "\n";
+      finalText += "Tổng doanh số: " + totalRevenue + "\n\n";
+      finalText += "Tổng số lượng hàng đã bán mỗi loại:\n";
+
+      let productNames = Object.keys(totalSoldByName);
+      if (productNames.length === 0) {
+        finalText += "Chưa bán sản phẩm nào.\n";
+      } else {
+        for (let productName of productNames) {
+          finalText += productName + ": " + totalSoldByName[productName] + "\n";
+        }
+      }
+
+      let totalInventoryLeft = 0;
+      for (let item of items) {
+        totalInventoryLeft += item.quantity;
+      }
+
+      finalText += "\nTổng số lượng hàng tồn kho: " + totalInventoryLeft;
+      showMessage(finalText);
+    }
+
+    function showList() {
+      if (items.length === 0) {
+        showMessage("Hiện chưa có mặt hàng nào được lưu vào hệ thống.");
+        return;
+      }
+
+      let storage = "DANH SÁCH MẶT HÀNG TRONG KHO\n\n";
+
+      for (let item of items) {
+        storage += "Sản phẩm: " + item.name + "\n";
+        storage += "Giá: " + item.price + "\n";
+        storage += "Số lượng còn lại: " + item.quantity + "\n";
+        storage += "-------------------------\n";
+      }
+
+      showMessage(storage);
+    }
+
+    function clearStorage() {
+      let confirmClear = confirm("Bạn có chắc chắn muốn xoá toàn bộ dữ liệu?");
+
+      if (confirmClear) {
+        items = [];
+        saveData();
+        showMessage("Đã xoá toàn bộ dữ liệu trong kho.");
+      } else {
+        showMessage("Đã huỷ xoá dữ liệu.");
+      }
+    }
+
+    function exitApp() {
+      saveData();
+      alert("Dữ liệu đã được lưu. Trên iPad/Safari, bạn chỉ cần đóng tab hoặc quay về màn hình chính.");
+    }
+    function connectButton(buttonId, action) {
+      const button = document.getElementById(buttonId);
+
+      button.addEventListener("click", action);
+
+      button.addEventListener("touchend", function(event) {
+        event.preventDefault();
+        action();
+      });
+    }
+
+    connectButton("addBtn", addItem);
+    connectButton("updateBtn", updateItem);
+    connectButton("sellBtn", sellItem);
+    connectButton("listBtn", showList);
+    connectButton("clearBtn", clearStorage);
+    connectButton("exitBtn", exitApp);
+  </script>
+</body>
+</html>
